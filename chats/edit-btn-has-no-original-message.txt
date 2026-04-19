@@ -1,0 +1,78 @@
+ ▐▛███▜▌   Claude Code v2.1.114
+▝▜█████▛▘  Sonnet 4.6 · Claude Pro
+  ▘▘ ▝▝    ~/dmltdev/tasks/flirty-friend-chat-app
+
+❯ /clear                                                                        
+  ⎿  (no content)
+
+❯ I updated all chat-related components @src/features/chat/components/          
+  I need your help - when I get an error about a forbidden word pair and it has 
+   "Edit" btn - I am refocused to the textarea, but the original text message   
+  is lost. I should get it back.                                                
+  ⎿  Listed directory src/features/chat/components/
+
+  Read 3 files (ctrl+o to expand)
+
+⏺ Found it. ChatInput.submit() clears value immediately at line 35, before the
+  server responds. When the moderation error comes back, the original text is
+  gone. I'll track the last submitted text in ChatClient and restore it via an
+  imperative handle on Edit.
+
+⏺ Update(src/features/chat/components/ChatInput.tsx)
+  ⎿  Added 1 line
+      2  
+      3  export interface ChatInputHandle {
+      4    focus: () => void;
+      5 +  setValue: (text: string) => void;                             
+      6  }
+      7  
+      8  interface ChatInputProps {
+
+⏺ Update(src/features/chat/components/ChatInput.tsx)
+  ⎿  Added 4 lines, removed 1 line
+      25  
+      26    useImperativeHandle(
+      27      ref,
+      28 -    () => ({ focus: () => textareaRef.current?.focus() }),     
+      28 +    () => ({                                                   
+      29 +      focus: () => textareaRef.current?.focus(),               
+      30 +      setValue: (text: string) => setValue(text),              
+      31 +    }),                                                        
+      32      [],
+      33    );
+      34  
+
+⏺ Update(src/features/chat/components/ChatClient.tsx)
+  ⎿  Added 3 lines
+      19  export function ChatClient({ initialMessages }: ChatClientProps
+          ) {
+      20    const [chatError, setChatError] = useState<ChatError>(null);
+      21    const inputRef = useRef<ChatInputHandle>(null);
+      22 +  const lastSubmittedRef = useRef<string>("");                 
+      23  
+      24    const { messages, sendMessage, status, stop, regenerate } = u
+          seChat({
+      25      messages: initialMessages,
+     ...
+      31  
+      32    const handleSubmit = (text: string) => {
+      33      setChatError(null);
+      34 +    lastSubmittedRef.current = text;                           
+      35      sendMessage({ text });
+      36    };
+      37  
+     ...
+      42  
+      43    const handleEdit = () => {
+      44      setChatError(null);
+      45 +    inputRef.current?.setValue(lastSubmittedRef.current);      
+      46      inputRef.current?.focus();
+      47    };
+      48  
+
+⏺ Done. On submit, ChatClient stores the text in lastSubmittedRef; on Edit, it
+  restores that text via a new setValue method on ChatInputHandle before
+  focusing.
+
+  - ChatInput.tsx: extended ChatInputHandle with setValue
+  - ChatClient.tsx: tracks last submitted text and restores it in handleEdit

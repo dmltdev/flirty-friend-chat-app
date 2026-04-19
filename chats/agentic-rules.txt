@@ -1,0 +1,148 @@
+ ▐▛███▜▌   Claude Code v2.1.114
+▝▜█████▛▘  Sonnet 4.6 · Claude Pro
+  ▘▘ ▝▝    ~/dmltdev/tasks/flirty-friend-chat-app
+
+❯ /clear                                                                        
+  ⎿  (no content)
+
+❯ @AGENTS.md Pls verify the codebase conforms to the naming conventions.        
+  ⎿  Read AGENTS.md (20 lines)
+
+  Searched for 4 patterns, listed 1 directory (ctrl+o to expand)
+
+⏺ Naming convention audit
+
+  Violations (blocking per AGENTS.md):
+
+  - src/components/ui/alert.tsx → should be Alert.tsx (component files =
+  PascalCase)
+  - src/components/ui/button.tsx → should be Button.tsx
+
+  These are shadcn scaffolds with default kebab-case filenames; the exported
+  components (Alert, Button) are correctly PascalCase, but the filenames violate
+   the rule.
+
+  Compliant:
+
+  - Feature components — all PascalCase (ChatClient.tsx, MessageItem.tsx, etc.)
+  - Non-component .ts files — kebab-case (parse-error.ts, moderation-tag.ts,
+  rate-limit.ts)
+  - Directories — kebab-case (word-pair, chat, moderation)
+  - Functions/variables — camelCase (moderateText, checkRateLimit,
+  ensureSessionCookie)
+  - Types/interfaces — PascalCase, no prefix (ChatMessage, ModerationResult,
+  TokenRange, RateLimitResult)
+  - Constants — SCREAMING_SNAKE_CASE (MAX_INPUT_CHARS, SESSION_COOKIE, LEET_MAP,
+   PERSONA_SYSTEM_PROMPT)
+  - Event handlers — handle prefix (handleSubmit, handleChange, handleKeyDown,
+  handleRetry, handleEdit)
+  - No hook files present to check.
+
+  Suggested minimal fix:
+
+  git mv src/components/ui/alert.tsx  src/components/ui/Alert.tsx
+  git mv src/components/ui/button.tsx src/components/ui/Button.tsx
+
+  Then update the two import sites (~/components/ui/alert →
+  ~/components/ui/Alert, same for button). Want me to apply this?
+
+✻ Cogitated for 37s
+
+❯ These are shadcn, it's not vital to rename all of them each time a new shadcn 
+   component is added. Pls adjust the rule in AGENTS.MD to clarify that this    
+  doesn't apply to primitive components stored in src/components/ui             
+
+⏺ Update(AGENTS.md)
+  ⎿  Error editing file
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(AGENTS.md)
+  ⎿  Error editing file
+
+⏺ Bash(od -c /Users/dmytro.l/dmltdev/tasks/flirty-friend-chat-app/AGENTS.md |
+      sed -n '5,12p')
+  ⎿  0000100    k   n   o   w  \n  \n   T   h   i   s       v   e   r   s
+      i
+     0000120    o   n       h   a   s       b   r   e   a   k   i   n   g
+     … +13 lines (ctrl+o to expand)
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Bash(sed -n '9p'
+      /Users/dmytro.l/dmltdev/tasks/flirty-friend-chat-app/AGENTS.md | od -c |
+      head -5)
+  ⎿  0000000    -       C   o   m   p   o   n   e   n   t       f   i   l
+      e
+     0000020    s       u   s   e      **   *   *   P   a   s   c   a   l
+     … +6 lines (ctrl+o to expand)
+
+⏺ Bash(sed -n '9p'
+      /Users/dmytro.l/dmltdev/tasks/flirty-friend-chat-app/AGENTS.md | xxd |
+      head -5)
+  ⎿  00000000: 2d20 436f 6d70 6f6e 656e 7420 6669 6c65  - Component file
+     00000010: 7320 7573 65c2 a02a 2a50 6173 6361 6c43  s use..**PascalC
+     00000020: 6173 652a 2ac2 a028 652e 672e 2cc2 a060  ase**..(e.g.,..`
+     … +2 lines (ctrl+o to expand)
+
+⏺ Update(AGENTS.md)
+  ⎿  Error editing file
+⏺ Update(AGENTS.md)
+  ⎿  Error editing file
+
+⏺ Write(AGENTS.md)
+  ⎿  Added 10 lines, removed 10 lines
+       6  
+       7  ## **Naming conventions:**
+       8  
+       9 -- Component files use **PascalCase** (e.g., `MyComponent.tsx`).
+      10 -- Hook files use **kebab-case** with `use-` prefix (e.g., `use-
+         -my-hook.ts`).                                                  
+      11 -- Variables and functions use **camelCase**.                   
+      12 -- Interfaces use **PascalCase** (e.g., `MyInterface`).         
+      13 -- Types use **PascalCase** without prefixes (e.g., `MyType`).  
+      14 -- Enum values use **PascalCase** (e.g., `MyEnum.SomeValue`).   
+      15 -- Constants use **SCREAMING_SNAKE_CASE**.                      
+      16 -- Event handlers start with `handle` (e.g., `handleClick`).    
+       9 +- Component files use **PascalCase** (e.g., `MyComponent.tsx`).
+         + **Exception:** primitive components under `src/components/ui/`
+         + (shadcn scaffolds) keep their original kebab-case filenames — 
+         +don't rename them.                                             
+      10 +- Hook files use **kebab-case** with `use-` prefix (e.g., `use-
+         +my-hook.ts`).                                                  
+      11 +- Variables and functions use **camelCase**.                   
+      12 +- Interfaces use **PascalCase** (e.g., `MyInterface`).         
+      13 +- Types use **PascalCase** without prefixes (e.g., `MyType`).  
+      14 +- Enum values use **PascalCase** (e.g., `MyEnum.SomeValue`).   
+      15 +- Constants use **SCREAMING_SNAKE_CASE**.                      
+      16 +- Event handlers start with `handle` (e.g., `handleClick`).    
+      17  - CSS classes follow Tailwind conventions or kebab-case for cus
+          tom classes.
+      18 -- Directory names use **kebab-case**.                          
+      19 -- Service objects use **camelCase** (e.g., `myService`). **If v
+         -iolated:** Blocking - request renaming (file/symbol) with a min
+         -imal diff.                                                     
+      18 +- Directory names use **kebab-case**.                          
+      19 +- Service objects use **camelCase** (e.g., `myService`). **If v
+         +iolated:** Blocking - request renaming (file/symbol) with a min
+         +imal diff.                                                     
+
+⏺ Bash(sed -n '9p'
+      /Users/dmytro.l/dmltdev/tasks/flirty-friend-chat-app/AGENTS.md)
+  ⎿  - Component files use **PascalCase** (e.g., `MyComponent.tsx`). **Exce
+     ption:** primitive components under `src/components/ui/` (shadcn scaff
+     olds) keep their original kebab-case filenames — don't rename them.
+
+⏺ Now let me save this as a feedback memory so future sessions know the
+  exception.
+
+  Listed 1 directory, wrote 2 memories (ctrl+o to expand)
+
+⏺ Updated AGENTS.md:9 to carve out an exception for src/components/ui/
+  primitives, and saved a feedback memory so future audits won't flag those
+  files.
+
+  Note: the edit also normalized some non-breaking spaces in that section to
+  regular spaces (the original had stray NBSPs that were blocking a surgical
+  Edit). The rendered Markdown is unchanged. Let me know if you'd like those
+  NBSPs restored.

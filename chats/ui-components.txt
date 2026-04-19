@@ -1,0 +1,946 @@
+ ▐▛███▜▌   Claude Code v2.1.114
+▝▜█████▛▘  Sonnet 4.6 · Claude Pro
+  ▘▘ ▝▝    ~/dmltdev/tasks/flirty-friend-chat-app
+
+❯ /clear                                                                        
+  ⎿  (no content)
+
+❯ Pls compose chat UI components in @src/features/chat/components directory     
+  using useChat from @ai-sdk/react . Route already streams at api/chat . Use    
+  ChatError type + parseChatError util                                          
+                                                                                
+  I need these: ChatClient (client-side top-level component, takes              
+  initialMessages from RSC, then uses useChat and holds error state).           
+  Then, there is a ChatHeader with smth like "Flirty Friend" and "online"       
+  indicator that changes to "typing" when we await the model's response.        
+                                                                                
+  Then, there is a MessageList container with autoscroll. On submitted - show   
+  typing dots and cursor on streaming last asssistant message. Each MessageItem 
+   is a bubble on the right, use React.memo to not re-render the whole list.    
+  Also add ChatInput - textarea with field-sizing=content + a Send button       
+  (support Enter) +  shift+enter move to newline, also show Stop when streaming 
+   llm response token-by-token. For UI errors - create an error banner that     
+  writes a descriptive and UX-friendly message to users, supporting all error   
+  types                                                                         
+                                                                                
+  Keep it simple and straightforward, it's an MVP. safe-area-inset-bottom on    
+  input for mobile support. mobile most fill viewport on ios safari             
+  ⎿  Listed directory src/features/chat/components/
+
+  Searched for 4 patterns, read 16 files, listed 4 directories (ctrl+o to expand)
+
+⏺ Good — default transport hits /api/chat. Now I'll build the components.
+
+  Read 1 file, listed 1 directory (ctrl+o to expand)
+
+⏺ Now I'll create the components. Writing 7 files in the
+  src/features/chat/components directory.
+
+⏺ Write(src/features/chat/components/ChatClient.tsx)
+  ⎿  Wrote 53 lines to src/features/chat/components/ChatClient.tsx
+       1 "use client";
+       2 
+       3 import { useChat } from "@ai-sdk/react";
+       4 import { useCallback, useState } from "react";
+       5 
+       6 import type { ChatError, ChatMessage } from "../types";
+       7 import { parseChatError } from "../parse-error";
+       8 
+       9 import { ChatHeader } from "./ChatHeader";
+      10 import { MessageList } from "./MessageList";
+     … +44 lines (ctrl+o to expand)
+
+⏺ Write(src/features/chat/components/ChatHeader.tsx)
+  ⎿  Wrote 37 lines to src/features/chat/components/ChatHeader.tsx
+       2 import type { ChatStatus } from "ai";
+       3 import { cn } from "~/lib/utils";
+       4 
+       5 type ChatHeaderProps = {
+       6   status: ChatStatus;
+       7 };
+       8 
+       9 export function ChatHeader({ status }: ChatHeaderProps) {
+      10   const isTyping = status === "submitted" || status === "streami
+         ng";
+     … +33 lines (ctrl+o to expand)
+
+⏺ Write(src/features/chat/components/MessageList.tsx)
+  ⎿  Wrote 56 lines to src/features/chat/components/MessageList.tsx
+      1 "use client";
+      2 
+      3 import type { ChatStatus } from "ai";
+      4 import { useEffect, useRef } from "react";
+      5 
+      6 import type { ChatMessage } from "../types";
+      7 
+      8 import { MessageItem } from "./MessageItem";
+      9 import { TypingDots } from "./TypingDots";
+     … +49 lines (ctrl+o to expand)
+
+⏺ Write(src/features/chat/components/MessageItem.tsx)
+  ⎿  Wrote 43 lines to src/features/chat/components/MessageItem.tsx
+       1 import { memo } from "react";
+       2 
+       3 import { cn } from "~/lib/utils";
+       4 import { getMessageText } from "../text";
+       5 import type { ChatMessage } from "../types";
+       6 
+       7 type MessageItemProps = {
+       8   message: ChatMessage;
+       9   isStreaming: boolean;
+      10 };
+     … +38 lines (ctrl+o to expand)
+
+⏺ Write(src/features/chat/components/ChatInput.tsx)
+  ⎿  Wrote 88 lines to src/features/chat/components/ChatInput.tsx
+       2 "use client";
+       3 import { Send, Square } from "lucide-react";
+       4 import { useCallback, useRef, useState, type KeyboardEvent } fro
+         m "react";
+       5 
+       6 import { Button } from "~/components/ui/button";
+       7 import { cn } from "~/lib/utils";
+       8 
+       9 type ChatInputProps = {
+      10   onSend: (text: string) => void;
+     … +86 lines (ctrl+o to expand)
+
+⏺ Write(src/features/chat/components/ErrorBanner.tsx)
+  ⎿  Wrote 60 lines to src/features/chat/components/ErrorBanner.tsx
+       1 "use client";
+       2 
+       3 import { X } from "lucide-react";
+       4 
+       5 import { Button } from "~/components/ui/button";
+       6 import type { ChatError } from "../types";
+       7 
+       8 type ErrorBannerProps = {
+       9   error: NonNullable<ChatError>;
+      10   onDismiss: () => void;
+     … +59 lines (ctrl+o to expand)
+
+⏺ Write(src/features/chat/components/TypingDots.tsx)
+  ⎿  Wrote 13 lines to src/features/chat/components/TypingDots.tsx
+       2   return (ction TypingDots() {
+       3     <span
+       4       aria-label="typing"
+       6       className="inline-flex items-center gap-1"
+       7     >
+       8       <span className="size-1.5 animate-bounce rounded-full bg-m
+       9       <span className="size-1.5 animate-bounce rounded-full bg-m
+         uted-foreground [animation-delay:-0.15s]" />
+      10       <span className="size-1.5 animate-bounce rounded-full bg-m
+         uted-foreground" />
+     … +6 lines (ctrl+o to expand)
+
+⏺ Now verify the moderation type shape and run typecheck.
+
+  Searched for 1 pattern, read 2 files (ctrl+o to expand)
+
+⏺ I need to fix ErrorBanner — WordPairViolation has no .match.
+
+⏺ Update(src/features/chat/components/ErrorBanner.tsx)
+  ⎿  Added 2 lines, removed 6 lines
+      37  
+      38  function getErrorMessage(error: NonNullable<ChatError>): string
+           {
+      39    switch (error.type) {
+      40 -    case "moderation_blocked": {                               
+      41 -      const words = error.violations.map((v) => `"${v.match}"`)
+         -.join(", ");                                                   
+      42 -      return words                                             
+      43 -        ? `Let's keep things kind — please rephrase without ${w
+         -ords}.`                                                        
+      44 -        : "That message was blocked by moderation. Please rephr
+         -ase it.";                                                      
+      45 -    }                                                          
+      40 +    case "moderation_blocked":                                 
+      41 +      return "That message looks a bit off — could you rephrase
+         + it?";                                                         
+      42      case "rate_limited":
+      43        return `You're sending messages a bit fast. Try again in 
+          ${error.retryAfterSec}s.`;
+      44      case "bad_request":
+
+⏺ Bash(pnpm typecheck 2>&1 | tail -40)  ⎿  > flirty-friend-chat-app@0.1.0 typecheck /Users/dmytro.l/dmltdev/tasks
+     /flirty-friend-chat-app
+     > tsc --noEmit
+
+⏺ Typecheck clean. Quick lint check.
+
+⏺ Bash(pnpm lint:quiet 2>&1 | tail -30)
+  ⎿  > flirty-friend-chat-app@0.1.0 lint:quiet /Users/dmytro.l/dmltdev/task
+     s/flirty-friend-chat-app
+     > eslint --quiet
+
+⏺ Clean. Here's what was built in src/features/chat/components/:
+
+  - ChatClient.tsx — "use client", calls useChat({ messages: initialMessages, 
+  onError }), holds local ChatError state, parses with parseChatError, wires
+  sendMessage/stop to children.
+  - ChatHeader.tsx — "Flirty Friend" title + green dot/"online" → amber pulsing
+  dot/"typing…" when status is submitted/streaming.
+  - MessageList.tsx — scrollable flex container, autoscrolls via scrollIntoView
+  on message/status change. Shows TypingDots bubble when status === "submitted"
+  and no assistant reply yet.
+  - MessageItem.tsx — right-aligned bubble for user, left for assistant.
+  React.memo with custom comparator keyed on id + message identity + text — only
+   the streaming last bubble re-renders per token. Shows blinking cursor while
+  streaming.
+  - ChatInput.tsx — field-sizing-content textarea, Enter submits (Shift+Enter
+  newlines, IME-safe), toggles Send ↔ Stop icon, form has
+  pb-[env(safe-area-inset-bottom)].
+  - ErrorBanner.tsx — switch over all ChatError types (moderation, rate-limit
+  with seconds, bad_request, unknown) with friendly copy + dismiss.
+  - TypingDots.tsx — three bouncing dots.
+
+  src/app/page.tsx already imports ChatClient from this path and the layout uses
+   h-dvh, so the chat fills iOS Safari viewport. pnpm typecheck and pnpm 
+  lint:quiet both pass.
+
+✻ Cogitated for 2m 48s
+
+❯ @src/features/chat/constants.ts                                               
+  let's add max input size and display the number of written characters in the  
+  right-bottom corner below textarea (absolute positioning), small font size,   
+  muted color.                                                                  
+  ⎿  Read src/features/chat/constants.ts (2 lines)
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/features/chat/constants.ts)
+  ⎿  Added 1 line
+      1  export const MAX_MESSAGES_PER_SESSION = 100;
+      2 +export const MAX_INPUT_CHARS = 1000;                            
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/features/chat/components/ChatInput.tsx)
+  ⎿  Added 1 line
+       5  
+       6  import { Button } from "~/components/ui/button";
+       7  import { cn } from "~/lib/utils";
+       8 +import { MAX_INPUT_CHARS } from "../constants";                
+       9  
+      10  type ChatInputProps = {
+      11    onSend: (text: string) => void;
+
+⏺ Update(src/features/chat/components/ChatInput.tsx)
+  ⎿  Added 1 line
+      21    const submit = useCallback(() => {
+      22      const trimmed = value.trim();
+      23      if (!trimmed || isBusy || disabled) return;
+      24 +    if (trimmed.length > MAX_INPUT_CHARS) return;              
+      25      onSend(trimmed);
+      26      setValue("");
+      27      textareaRef.current?.focus();
+
+⏺ Update(src/features/chat/components/ChatInput.tsx)
+  ⎿  Added 3 lines, removed 1 line
+      37      [submit],
+      38    );
+      39  
+      40 -  const canSend = value.trim().length > 0 && !disabled;        
+      40 +  const trimmedLength = value.trim().length;                   
+      41 +  const isOverLimit = trimmedLength > MAX_INPUT_CHARS;         
+      42 +  const canSend = trimmedLength > 0 && !disabled && !isOverLimi
+         +t;                                                             
+      43  
+      44    return (
+      45      <form
+
+⏺ Update(src/features/chat/components/ChatInput.tsx)
+  ⎿  Added 28 lines, removed 16 lines
+      50        className="shrink-0 border-t border-border bg-background/
+          80 backdrop-blur pb-[env(safe-area-inset-bottom)]"
+      51      >
+      52        <div className="mx-auto flex w-full max-w-2xl items-end g
+          ap-2 px-3 py-3">
+      53 -        <textarea                                              
+      54 -          ref={textareaRef}                                    
+      55 -          value={value}                                        
+      56 -          onChange={(event) => setValue(event.target.value)}   
+      57 -          onKeyDown={handleKeyDown}                            
+      58 -          rows={1}                                             
+      59 -          placeholder="Message Luna…"                          
+      60 -          disabled={disabled}                                  
+      61 -          aria-label="Message"                                 
+      62 -          className={cn(                                       
+      63 -            "field-sizing-content max-h-40 min-h-10 w-full resi
+         -ze-none rounded-2xl border border-border bg-muted/50 px-4 py-2.
+         -5 text-sm outline-none",                                       
+      64 -            "placeholder:text-muted-foreground",               
+      65 -            "focus-visible:border-ring focus-visible:ring-2 foc
+         -us-visible:ring-ring/40",                                      
+      66 -            "disabled:opacity-50",                             
+      67 -          )}                                                   
+      68 -        />                                                     
+      53 +        <div className="relative flex-1">                      
+      54 +          <textarea                                            
+      55 +            ref={textareaRef}                                  
+      56 +            value={value}                                      
+      57 +            onChange={(event) => setValue(event.target.value)} 
+      58 +            onKeyDown={handleKeyDown}                          
+      59 +            rows={1}                                           
+      60 +            placeholder="Message Luna…"                        
+      61 +            disabled={disabled}                                
+      62 +            aria-label="Message"                               
+      63 +            aria-invalid={isOverLimit || undefined}            
+      64 +            className={cn(                                     
+      65 +              "field-sizing-content max-h-40 min-h-10 w-full re
+         +size-none rounded-2xl border border-border bg-muted/50 px-4 py-
+         +2.5 pb-5 text-sm outline-none",                                
+      66 +              "placeholder:text-muted-foreground",             
+      67 +              "focus-visible:border-ring focus-visible:ring-2 f
+         +ocus-visible:ring-ring/40",                                    
+      68 +              "disabled:opacity-50",                           
+      69 +            )}                                                 
+      70 +          />                                                   
+      71 +          <span                                                
+      72 +            aria-live="polite"                                 
+      73 +            className={cn(                                     
+      74 +              "pointer-events-none absolute right-3 bottom-1.5 
+         +text-[10px] tabular-nums",                                     
+      75 +              isOverLimit ? "text-destructive" : "text-muted-fo
+         +reground",                                                     
+      76 +            )}                                                 
+      77 +          >                                                    
+      78 +            {trimmedLength}/{MAX_INPUT_CHARS}                  
+      79 +          </span>                                              
+      80 +        </div>                                                 
+      81          {isBusy ? (
+      82            <Button
+      83              type="button"
+
+⏺ Bash(pnpm typecheck 2>&1 | tail -15 && pnpm lint:quiet 2>&1 | tail -10)
+  ⎿  > flirty-friend-chat-app@0.1.0 typecheck /Users/dmytro.l/dmltdev/tasks
+     /flirty-friend-chat-app
+     > tsc --noEmit
+     … +5 lines (ctrl+o to expand)
+
+⏺ Added MAX_INPUT_CHARS = 1000 in constants.ts and a character counter in
+  ChatInput.tsx — absolute-positioned at right-3 bottom-1.5 inside a relative
+  wrapper around the textarea, text-[10px] muted, turns destructive when over
+  limit. Submit blocks when over limit (Send button also disabled). Added pb-5
+  on textarea so text doesn't overlap the counter.
+
+✻ Crunched for 38s
+
+❯ button has no cursor:pointer when I hover over it. Also, button is not        
+  centere compared to textarea + has no "Send" and "Stop" text, only icons.     
+                                                                                
+  ErrorBanner looks bad - I just imported shadcn Alert, please use it -         
+  @src/components/ui/alert.tsx                                                  
+  Make sure it doesn't stretch width to 100% of the viewport like now - make it 
+   w-fit.                                                                       
+  ⎿  Read src/components/ui/alert.tsx (77 lines)
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/features/chat/components/ChatInput.tsx)
+  ⎿  Added 1 line, removed 1 line
+      49        }}
+      50        className="shrink-0 border-t border-border bg-background/
+          80 backdrop-blur pb-[env(safe-area-inset-bottom)]"
+      51      >
+      52 -      <div className="mx-auto flex w-full max-w-2xl items-end g
+         -ap-2 px-3 py-3">                                               
+      52 +      <div className="mx-auto flex w-full max-w-2xl items-cente
+         +r gap-2 px-3 py-3">                                            
+      53          <div className="relative flex-1">
+      54            <textarea
+      55              ref={textareaRef}
+
+⏺ Update(src/features/chat/components/ChatInput.tsx)
+  ⎿  Added 4 lines, removed 4 lines
+       81          {isBusy ? (
+       82            <Button
+       83              type="button"
+       84 -            size="icon"                                       
+       84              variant="secondary"
+       86 -            aria-label="Stop generating"                      
+       85              onClick={onStop}
+       86 +            className="cursor-pointer"                        
+       87            >
+       88              <Square className="size-4 fill-current" />
+       89 +            Stop                                              
+       90            </Button>
+       91          ) : (
+       92            <Button
+       93              type="submit"
+       94 -            size="icon"                                       
+       95 -            aria-label="Send message"                         
+       94              disabled={!canSend}
+       95 +            className="cursor-pointer"                        
+       96            >
+       97              <Send className="size-4" />
+       98 +            Send                                              
+       99            </Button>
+      100          )}
+      101        </div>
+⏺ Now rewrite ErrorBanner to use shadcn Alert.
+
+⏺ Write(src/features/chat/components/ErrorBanner.tsx)
+  ⎿  Added 50 lines, removed 30 lines
+       1  "use client";
+       2  
+       3 -import { X } from "lucide-react";                              
+       3 +import { AlertCircle, X } from "lucide-react";                 
+       4  
+       5 +import {                                                       
+       6 +  Alert,                                                       
+       7 +  AlertAction,                                                 
+       8 +  AlertDescription,                                            
+       9 +  AlertTitle,                                                  
+      10 +} from "~/components/ui/alert";                                
+      11  import { Button } from "~/components/ui/button";
+      12  import type { ChatError } from "../types";
+      13  
+     ...
+      17  };
+      18  
+      19  export function ErrorBanner({ error, onDismiss }: ErrorBannerPr
+          ops) {
+      14 -  const message = getErrorMessage(error);                      
+      20 +  const { title, description } = getErrorCopy(error);          
+      21  
+      22    return (
+      17 -    <div                                                       
+      18 -      role="alert"                                             
+      19 -      className="shrink-0 border-b border-destructive/30 bg-des
+         -tructive/10 px-4 py-2 text-sm text-destructive"                
+      20 -    >                                                          
+      21 -      <div className="mx-auto flex w-full max-w-2xl items-start
+         - gap-3">                                                       
+      22 -        <p className="flex-1 leading-snug">{message}</p>       
+      23 -        <Button                                                
+      24 -          type="button"                                        
+      25 -          size="icon-xs"                                       
+      26 -          variant="ghost"                                      
+      27 -          aria-label="Dismiss error"                           
+      28 -          onClick={onDismiss}                                  
+      29 -          className="text-destructive hover:bg-destructive/10" 
+      30 -        >                                                      
+      31 -          <X className="size-3" />                             
+      32 -        </Button>                                              
+      33 -      </div>                                                   
+      23 +    <div className="mx-auto w-full max-w-2xl shrink-0 px-3 pt-2
+         +">                                                             
+      24 +      <Alert variant="destructive" className="w-fit max-w-full 
+         +pr-10">                                                        
+      25 +        <AlertCircle />                                        
+      26 +        <AlertTitle>{title}</AlertTitle>                       
+      27 +        <AlertDescription>{description}</AlertDescription>     
+      28 +        <AlertAction>                                          
+      29 +          <Button                                              
+      30 +            type="button"                                      
+      31 +            size="icon-xs"                                     
+      32 +            variant="ghost"                                    
+      33 +            aria-label="Dismiss error"                         
+      34 +            onClick={onDismiss}                                
+      35 +            className="cursor-pointer text-destructive hover:bg
+         +-destructive/10"                                               
+      36 +          >                                                    
+      37 +            <X className="size-3" />                           
+      38 +          </Button>                                            
+      39 +        </AlertAction>                                         
+      40 +      </Alert>                                                 
+      41      </div>
+      42    );
+      43  }
+      44  
+      38 -function getErrorMessage(error: NonNullable<ChatError>): string
+         - {                                                             
+      45 +function getErrorCopy(error: NonNullable<ChatError>): {        
+      46 +  title: string;                                               
+      47 +  description: string;                                         
+      48 +} {                                                            
+      49    switch (error.type) {
+      50      case "moderation_blocked":
+      41 -      return "That message looks a bit off — could you rephrase
+         - it?";                                                         
+      51 +      return {                                                 
+      52 +        title: "Message blocked",                              
+      53 +        description: "That message looks a bit off — could you 
+         +rephrase it?",                                                 
+      54 +      };                                                       
+      55      case "rate_limited":
+      43 -      return `You're sending messages a bit fast. Try again in 
+         -${error.retryAfterSec}s.`;                                     
+      56 +      return {                                                 
+      57 +        title: "Slow down a bit",                              
+      58 +        description: `You're sending messages a bit fast. Try a
+         +gain in ${error.retryAfterSec}s.`,                             
+      59 +      };                                                       
+      60      case "bad_request":
+      45 -      return (                                                 
+      46 -        error.message ??                                       
+      47 -        "Your message couldn't be sent. Please check it and try
+         - again."                                                       
+      48 -      );                                                       
+      61 +      return {                                                 
+      62 +        title: "Couldn't send message",                        
+      63 +        description:                                           
+      64 +          error.message ??                                     
+      65 +          "Your message couldn't be sent. Please check it and t
+         +ry again.",                                                    
+      66 +      };                                                       
+      67      case "unknown":
+      68      default:
+      51 -      return (                                                 
+      52 -        error.message ??                                       
+      53 -        "Something went wrong reaching Luna. Please try again i
+         -n a moment."                                                   
+      54 -      );                                                       
+      69 +      return {                                                 
+      70 +        title: "Something went wrong",                         
+      71 +        description:                                           
+      72 +          error.message ??                                     
+      73 +          "Something went wrong reaching Luna. Please try again
+         + in a moment.",                                                
+      74 +      };                                                       
+      75    }
+      76  }
+
+⏺ Bash(pnpm typecheck 2>&1 | tail -15 && pnpm lint:quiet 2>&1 | tail -10)
+  ⎿  > flirty-friend-chat-app@0.1.0 typecheck /Users/dmytro.l/dmltdev/tasks
+     /flirty-friend-chat-app
+     > tsc --noEmit
+     … +5 lines (ctrl+o to expand)
+
+⏺ Changes:
+
+  - ChatInput: Wrapper now uses items-center so button aligns to the textarea's
+  vertical midline even as it grows. Buttons switched from icon-only to default
+  size with Send/Stop text + icon, plus cursor-pointer.
+  - ErrorBanner: Replaced custom div with shadcn Alert (variant="destructive") +
+   AlertCircle icon, AlertTitle/AlertDescription for each error type, and
+  AlertAction holding the dismiss button. w-fit max-w-full so it hugs its
+  content and wraps inside a max-w-2xl container for alignment with the rest of
+  the chat.
+
+✻ Crunched for 41s
+
+❯ @src/features/chat/components/ErrorBanner.tsx                                 
+  Message blocked - contains forbidden word pair                                
+  this is the msg I want to see when moderation_blocked                         
+  Also map over all rules and display these forbidden word pairs - I know it    
+  wouldn't have been displayed in user-facing UI, just for debugging purposes.  
+  ⎿  Read src/features/chat/components/ErrorBanner.tsx (77 lines)
+
+⏺ Update(src/features/chat/components/ErrorBanner.tsx)
+  ⎿  Added 43 lines, removed 28 lines
+      17  };
+      18  
+      19  export function ErrorBanner({ error, onDismiss }: ErrorBannerPr
+          ops) {
+      20 -  const { title, description } = getErrorCopy(error);          
+      21 -                                                               
+      20    return (
+      21      <div className="mx-auto w-full max-w-2xl shrink-0 px-3 pt-2
+          ">
+      22        <Alert variant="destructive" className="w-fit max-w-full 
+          pr-10">
+      23          <AlertCircle />
+      26 -        <AlertTitle>{title}</AlertTitle>                       
+      27 -        <AlertDescription>{description}</AlertDescription>     
+      24 +        <AlertTitle>{getTitle(error)}</AlertTitle>             
+      25 +        <AlertDescription>{renderDescription(error)}</AlertDesc
+         +ription>                                                       
+      26          <AlertAction>
+      27            <Button
+      28              type="button"
+     ...
+      40    );
+      41  }
+      42  
+      45 -function getErrorCopy(error: NonNullable<ChatError>): {        
+      46 -  title: string;                                               
+      47 -  description: string;                                         
+      48 -} {                                                            
+      43 +function getTitle(error: NonNullable<ChatError>): string {     
+      44    switch (error.type) {
+      45      case "moderation_blocked":
+      51 -      return {                                                 
+      52 -        title: "Message blocked",                              
+      53 -        description: "That message looks a bit off — could you 
+         -rephrase it?",                                                 
+      54 -      };                                                       
+      46 +      return "Message blocked";                                
+      47      case "rate_limited":
+      56 -      return {                                                 
+      57 -        title: "Slow down a bit",                              
+      58 -        description: `You're sending messages a bit fast. Try a
+         -gain in ${error.retryAfterSec}s.`,                             
+      59 -      };                                                       
+      48 +      return "Slow down a bit";                                
+      49      case "bad_request":
+      61 -      return {                                                 
+      62 -        title: "Couldn't send message",                        
+      63 -        description:                                           
+      64 -          error.message ??                                     
+      65 -          "Your message couldn't be sent. Please check it and t
+         -ry again.",                                                    
+      66 -      };                                                       
+      50 +      return "Couldn't send message";                          
+      51      case "unknown":
+      52      default:
+      69 -      return {                                                 
+      70 -        title: "Something went wrong",                         
+      71 -        description:                                           
+      72 -          error.message ??                                     
+      73 -          "Something went wrong reaching Luna. Please try again
+         - in a moment.",                                                
+      74 -      };                                                       
+      53 +      return "Something went wrong";                           
+      54    }
+      55  }
+      56 +                                                               
+      57 +function renderDescription(error: NonNullable<ChatError>) {    
+      58 +  switch (error.type) {                                        
+      59 +    case "moderation_blocked":                                 
+      60 +      return (                                                 
+      61 +        <div className="flex flex-col gap-1">                  
+      62 +          <span>contains forbidden word pair</span>            
+      63 +          {error.violations.length > 0 ? (                     
+      64 +            <ul className="flex flex-wrap gap-1 font-mono text-
+         +xs">                                                           
+      65 +              {error.violations.map((v, i) => (                
+      66 +                <li                                            
+      67 +                  key={`${v.rule.w1}-${v.rule.w2}-${i}`}       
+      68 +                  className="rounded bg-destructive/10 px-1.5 p
+         +y-0.5"                                                         
+      69 +                >                                              
+      70 +                  {v.rule.w1} … {v.rule.w2}                    
+      71 +                </li>                                          
+      72 +              ))}                                              
+      73 +            </ul>                                              
+      74 +          ) : null}                                            
+      75 +        </div>                                                 
+      76 +      );                                                       
+      77 +    case "rate_limited":                                       
+      78 +      return `You're sending messages a bit fast. Try again in 
+         +${error.retryAfterSec}s.`;                                     
+      79 +    case "bad_request":                                        
+      80 +      return (                                                 
+      81 +        error.message ??                                       
+      82 +        "Your message couldn't be sent. Please check it and try
+         + again."                                                       
+      83 +      );                                                       
+      84 +    case "unknown":                                            
+      85 +    default:                                                   
+      86 +      return (                                                 
+      87 +        error.message ??                                       
+      88 +        "Something went wrong reaching Luna. Please try again i
+         +n a moment."                                                   
+      89 +      );                                                       
+      90 +  }                                                            
+      91 +}                                                              
+
+⏺ Bash(pnpm typecheck 2>&1 | tail -10 && pnpm lint:quiet 2>&1 | tail -10)
+  ⎿  > flirty-friend-chat-app@0.1.0 typecheck /Users/dmytro.l/dmltdev/tasks
+     /flirty-friend-chat-app
+     > tsc --noEmit
+     … +5 lines (ctrl+o to expand)
+
+⏺ On moderation_blocked the alert now shows:
+
+  - Title: "Message blocked"
+  - Description: "contains forbidden word pair", followed by a monospace chip
+  list of each violation's rule.w1 … rule.w2 pair for debugging.
+
+  Other error types unchanged.
+
+❯ We shouldn't disallow sending a new message if the previous one was           
+  forbidden. The user can't retry, but they can type a new message. Or I forgot 
+   some rule from @TASK.MD that mentions it?                                    
+  ⎿  Read TASK.MD (27 lines)
+
+⏺ You're right — nothing in TASK.MD requires that. I added disabled={status === 
+  "error"} defensively, which was wrong. Fixing it now.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/features/chat/components/ChatClient.tsx)
+  ⎿  Added 12 lines, removed 5 lines
+      18  export function ChatClient({ initialMessages }: ChatClientProps
+          ) {
+      19    const [error, setError] = useState<ChatError>(null);
+      20  
+      21 -  const { messages, status, sendMessage, stop } = useChat({    
+      22 -    messages: initialMessages,                                 
+      23 -    onError: (err) => setError(parseChatError(err)),           
+      24 -  });                                                          
+      21 +  const { messages, status, sendMessage, stop, setMessages, cle
+         +arError } =                                                    
+      22 +    useChat({                                                  
+      23 +      messages: initialMessages,                               
+      24 +      onError: (err) => {                                      
+      25 +        setError(parseChatError(err));                         
+      26 +        setMessages((prev) =>                                  
+      27 +          prev.at(-1)?.role === "user" ? prev.slice(0, -1) : pr
+         +ev,                                                            
+      28 +        );                                                     
+      29 +      },                                                       
+      30 +    });                                                        
+      31  
+      32    const handleSend = useCallback(
+      33      (text: string) => {
+      34        setError(null);
+      35 +      clearError();                                            
+      36        void sendMessage({ text });
+      37      },
+      31 -    [sendMessage],                                             
+      38 +    [sendMessage, clearError],                                 
+      39    );
+      40  
+      41    const handleDismissError = useCallback(() => setError(null), 
+          []);
+
+⏺ Update(src/features/chat/components/ChatClient.tsx)
+  ⎿  Added 1 line, removed 6 lines
+      49          <ErrorBanner error={error} onDismiss={handleDismissErro
+          r} />
+      50        ) : null}
+      51        <MessageList messages={messages} status={status} />
+      52 -      <ChatInput                                               
+      53 -        onSend={handleSend}                                    
+      54 -        onStop={stop}                                          
+      55 -        isBusy={isBusy}                                        
+      56 -        disabled={status === "error"}                          
+      57 -      />                                                       
+      52 +      <ChatInput onSend={handleSend} onStop={stop} isBusy={isBu
+         +sy} />                                                         
+      53      </div>
+      54    );
+      55  }
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/features/chat/components/ChatInput.tsx)
+  ⎿  Added 3 lines, removed 4 lines
+      11    onSend: (text: string) => void;
+      12    onStop: () => void;
+      13    isBusy: boolean;
+      14 -  disabled?: boolean;                                          
+      14  };
+      15  
+      17 -export function ChatInput({ onSend, onStop, isBusy, disabled }:
+         - ChatInputProps) {                                             
+      16 +export function ChatInput({ onSend, onStop, isBusy }: ChatInput
+         +Props) {                                                       
+      17    const [value, setValue] = useState("");
+      18    const textareaRef = useRef<HTMLTextAreaElement>(null);
+      19  
+      20    const submit = useCallback(() => {
+      21      const trimmed = value.trim();
+      23 -    if (!trimmed || isBusy || disabled) return;                
+      22 +    if (!trimmed || isBusy) return;                            
+      23      if (trimmed.length > MAX_INPUT_CHARS) return;
+      24      onSend(trimmed);
+      25      setValue("");
+      26      textareaRef.current?.focus();
+      28 -  }, [value, isBusy, disabled, onSend]);                       
+      27 +  }, [value, isBusy, onSend]);                                 
+      28  
+      29    const handleKeyDown = useCallback(
+      30      (event: KeyboardEvent<HTMLTextAreaElement>) => {
+
+⏺ Update(src/features/chat/components/ChatInput.tsx)
+  ⎿  Added 1 line, removed 1 line
+      38  
+      39    const trimmedLength = value.trim().length;
+      40    const isOverLimit = trimmedLength > MAX_INPUT_CHARS;
+      41 -  const canSend = trimmedLength > 0 && !disabled && !isOverLimi
+         -t;                                                             
+      41 +  const canSend = trimmedLength > 0 && !isOverLimit;           
+      42  
+      43    return (
+      44      <form
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+⏺ Update(src/features/chat/components/ChatInput.tsx)
+  ⎿  Removed 2 lines
+      57              onKeyDown={handleKeyDown}
+      58              rows={1}
+      59              placeholder="Message Luna…"
+      60 -            disabled={disabled}                                
+      60              aria-label="Message"
+      61              aria-invalid={isOverLimit || undefined}
+      62              className={cn(
+      63                "field-sizing-content max-h-40 min-h-10 w-full re
+          size-none rounded-2xl border border-border bg-muted/50 px-4 py-
+          2.5 pb-5 text-sm outline-none",
+      64                "placeholder:text-muted-foreground",
+      65                "focus-visible:border-ring focus-visible:ring-2 f
+          ocus-visible:ring-ring/40",
+      67 -              "disabled:opacity-50",                           
+      66              )}
+      67            />
+      68            <span
+⏺ Bash(pnpm typecheck 2>&1 | tail -10 && pnpm lint:quiet 2>&1 | tail -10)
+  ⎿  > flirty-friend-chat-app@0.1.0 typecheck /Users/dmytro.l/dmltdev/tasks
+     /flirty-friend-chat-app
+     > tsc --noEmit
+     … +5 lines (ctrl+o to expand)
+
+⏺ TASK.MD doesn't say anything about disabling input — that was my defensive
+  call, and it was wrong.
+
+  Changes:
+  - ChatClient: removed disabled on ChatInput. In onError, now pops the trailing
+   user message via setMessages so the blocked message doesn't get replayed to
+  the server on the next send. In handleSend, calls clearError() from useChat to
+   reset its internal status from "error" back to "ready" before sending.
+  - ChatInput: removed the now-unused disabled prop (and the textarea disabled
+  attr).
+
+  User can now type and send a fresh message right after any error — moderation,
+   rate-limit, or otherwise.
+
+✻ Brewed for 1m 19s
+
+❯ I pasted a message "To try dirty drugs" and it disappeared. The raw user      
+  input must be preserved, but don't pass flagged text to LLM.                  
+
+⏺ Preserving raw input on error. I'll lift the input state into ChatClient so it
+   can restore the blocked text.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/features/chat/components/ChatInput.tsx)
+  ⎿  Added 10 lines, removed 4 lines
+       1  "use client";
+       2  
+       3  import { Send, Square } from "lucide-react";
+       4 -import { useCallback, useRef, useState, type KeyboardEvent } fr
+         -om "react";                                                    
+       4 +import { useCallback, useRef, type KeyboardEvent } from "react"
+         +;                                                              
+       5  
+       6  import { Button } from "~/components/ui/button";
+       7  import { cn } from "~/lib/utils";
+       8  import { MAX_INPUT_CHARS } from "../constants";
+       9  
+      10  type ChatInputProps = {
+      11 +  value: string;                                               
+      12 +  onValueChange: (value: string) => void;                      
+      13    onSend: (text: string) => void;
+      14    onStop: () => void;
+      15    isBusy: boolean;
+      16  };
+      17  
+      16 -export function ChatInput({ onSend, onStop, isBusy }: ChatInput
+         -Props) {                                                       
+      17 -  const [value, setValue] = useState("");                      
+      18 +export function ChatInput({                                    
+      19 +  value,                                                       
+      20 +  onValueChange,                                               
+      21 +  onSend,                                                      
+      22 +  onStop,                                                      
+      23 +  isBusy,                                                      
+      24 +}: ChatInputProps) {                                           
+      25    const textareaRef = useRef<HTMLTextAreaElement>(null);
+      26  
+      27    const submit = useCallback(() => {
+     ...
+      29      if (!trimmed || isBusy) return;
+      30      if (trimmed.length > MAX_INPUT_CHARS) return;
+      31      onSend(trimmed);
+      25 -    setValue("");                                              
+      32      textareaRef.current?.focus();
+      33    }, [value, isBusy, onSend]);
+      34  
+
+⏺ Update(src/features/chat/components/ChatInput.tsx)
+  ⎿  Added 1 line, removed 1 line
+      59            <textarea
+      60              ref={textareaRef}
+      61              value={value}
+      62 -            onChange={(event) => setValue(event.target.value)} 
+      62 +            onChange={(event) => onValueChange(event.target.val
+         +ue)}                                                           
+      63              onKeyDown={handleKeyDown}
+      64              rows={1}
+      65              placeholder="Message Luna…"
+
+⏺ Now update ChatClient to own the input state and restore on error.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/features/chat/components/ChatClient.tsx)
+  ⎿  Added 13 lines, removed 2 lines
+      1  "use client";
+      2  
+      3  import { useChat } from "@ai-sdk/react";
+      4 -import { useCallback, useState } from "react";                  
+      4 +import { useCallback, useRef, useState } from "react";          
+      5  
+      6  import type { ChatError, ChatMessage } from "../types";
+      7  import { parseChatError } from "../parse-error";
+     ...
+      17  
+      18  export function ChatClient({ initialMessages }: ChatClientProps
+          ) {
+      19    const [error, setError] = useState<ChatError>(null);
+      20 +  const [input, setInput] = useState("");                      
+      21 +  const lastSubmittedRef = useRef("");                         
+      22  
+      23    const { messages, status, sendMessage, stop, setMessages, cle
+          arError } =
+      24      useChat({
+      25        messages: initialMessages,
+      26        onError: (err) => {
+      27          setError(parseChatError(err));
+      28 +        setInput((curr) => (curr === "" ? lastSubmittedRef.curr
+         +ent : curr));                                                  
+      29          setMessages((prev) =>
+      30            prev.at(-1)?.role === "user" ? prev.slice(0, -1) : pr
+          ev,
+      31          );
+     ...
+      36      (text: string) => {
+      37        setError(null);
+      38        clearError();
+      39 +      lastSubmittedRef.current = text;                         
+      40 +      setInput("");                                            
+      41        void sendMessage({ text });
+      42      },
+      43      [sendMessage, clearError],
+     ...
+      54          <ErrorBanner error={error} onDismiss={handleDismissErro
+          r} />
+      55        ) : null}
+      56        <MessageList messages={messages} status={status} />
+      52 -      <ChatInput onSend={handleSend} onStop={stop} isBusy={isBu
+         -sy} />                                                         
+      57 +      <ChatInput                                               
+      58 +        value={input}                                          
+      59 +        onValueChange={setInput}                               
+      60 +        onSend={handleSend}                                    
+      61 +        onStop={stop}                                          
+      62 +        isBusy={isBusy}                                        
+      63 +      />                                                       
+      64      </div>
+      65    );
+      66  }
+
+⏺ Bash(pnpm typecheck 2>&1 | tail -10 && pnpm lint:quiet 2>&1 | tail -10)
+  ⎿  > flirty-friend-chat-app@0.1.0 typecheck /Users/dmytro.l/dmltdev/tasks
+     /flirty-friend-chat-app
+     > tsc --noEmit
+     … +5 lines (ctrl+o to expand)
+
+⏺ Fix:
+
+  - ChatInput is now controlled — takes value and onValueChange props instead of
+   holding its own state.
+  - ChatClient owns the input state. On handleSend, it stashes the text in
+  lastSubmittedRef and optimistically clears the input. On error, it restores
+  the stashed text only if the input is currently empty, so a user who already
+  started typing a replacement doesn't lose it.
+
+  Flagged text is still blocked server-side before reaching the LLM (unchanged),
+   but the raw input comes back into the textarea so the user can edit and
+  resend.
