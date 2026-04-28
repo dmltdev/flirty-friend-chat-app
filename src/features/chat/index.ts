@@ -16,3 +16,4 @@ export {
 export { mergeUserMessage } from "./history";
 export { parseUserMessage } from "./parse-request";
 export { MAX_MESSAGES_PER_SESSION } from "./constants";
+export { getInitialMessages } from "./initial-messages";

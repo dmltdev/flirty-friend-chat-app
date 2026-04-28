@@ -15,17 +15,17 @@ import { getMessageText } from "~/features/chat/text";
 import { MAX_INPUT_CHARS } from "~/features/chat/constants";
 import { MODERATED_WORD_PAIRS, moderateText } from "~/features/moderation";
 import { checkRateLimit } from "~/lib/rate-limit";
-import { getSessionId } from "~/lib/session";
+import { ensureSessionId } from "~/lib/session";
 import { createErrorResponse } from "~/lib/utils/api";
 import { acquireSessionLock } from "~/lib/session-lock";
 
 export async function GET() {
-  const sessionId = await getSessionId();
+  const sessionId = await ensureSessionId();
   return NextResponse.json({ messages: await getHistory(sessionId) });
 }
 
 export async function POST(req: NextRequest) {
-  const sessionId = await getSessionId();
+  const sessionId = await ensureSessionId();
 
   const rl = checkRateLimit(sessionId);
   if (!rl.ok) {

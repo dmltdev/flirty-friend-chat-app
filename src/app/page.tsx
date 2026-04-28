@@ -1,10 +1,10 @@
-import { getSessionId } from "../lib/session";
+import { readSessionId } from "~/lib/session";
 
-import { getHistory } from "~/features/chat/store";
 import { ChatClient } from "~/features/chat/components/ChatClient";
+import { getInitialMessages } from "~/features/chat";
 
 export default async function ChatPage() {
-  const sessionId = await getSessionId();
-  const initialMessages = await getHistory(sessionId);
+  const sessionId = await readSessionId();
+  const initialMessages = await getInitialMessages(sessionId);
   return <ChatClient initialMessages={initialMessages} />;
 }
