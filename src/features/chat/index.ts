@@ -13,4 +13,6 @@ export {
   stripFlagged,
   preserveModerationTags,
 } from "./moderation-tag";
+export { mergeUserMessage } from "./history";
+export { parseUserMessage } from "./parse-request";
 export { MAX_MESSAGES_PER_SESSION } from "./constants";

@@ -1,61 +1,22 @@
-import { safeValidateUIMessages } from "ai";
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 import {
   getHistory,
+  mergeUserMessage,
+  parseUserMessage,
   preserveModerationTags,
   replaceHistory,
   streamChatResponse,
   stripFlagged,
   tagWithModeration,
 } from "~/features/chat";
-import type { ChatError, ChatMessage } from "~/features/chat/types";
+import type { ChatError } from "~/features/chat/types";
 import { getMessageText } from "~/features/chat/text";
 import { MAX_INPUT_CHARS } from "~/features/chat/constants";
 import { MODERATED_WORD_PAIRS, moderateText } from "~/features/moderation";
 import { checkRateLimit } from "~/lib/rate-limit";
 import { getSessionId } from "~/lib/session";
-
-function errorResponse(
-  error: NonNullable<ChatError>,
-  status: number,
-  headers?: Record<string, string>,
-) {
-  return NextResponse.json<NonNullable<ChatError>>(error, { status, headers });
-}
-
-async function parseUserMessage(
-  req: NextRequest,
-): Promise<
-  | { ok: true; message: ChatMessage }
-  | { ok: false; response: NextResponse }
-> {
-  const body = await req.json();
-  const result = await safeValidateUIMessages({ messages: body?.messages });
-
-  if (!result.success) {
-    return {
-      ok: false,
-      response: errorResponse(
-        { type: "bad_request", issues: result.error.message },
-        400,
-      ),
-    };
-  }
-
-  const last = result.data.at(-1) as ChatMessage | undefined;
-  if (!last || last.role !== "user") {
-    return {
-      ok: false,
-      response: errorResponse(
-        { type: "bad_request", message: "last message must be from user" },
-        400,
-      ),
-    };
-  }
-
-  return { ok: true, message: last };
-}
+import { createErrorResponse } from "~/lib/utils/api";
 
 export async function GET() {
   const sessionId = await getSessionId();
@@ -67,7 +28,7 @@ export async function POST(req: NextRequest) {
 
   const rl = checkRateLimit(sessionId);
   if (!rl.ok) {
-    return errorResponse(
+    return createErrorResponse<NonNullable<ChatError>>(
       { type: "rate_limited", retryAfterSec: rl.retryAfterSec },
       429,
       { "Retry-After": String(rl.retryAfterSec) },
@@ -79,7 +40,7 @@ export async function POST(req: NextRequest) {
 
   const userText = getMessageText(parsed.message);
   if (userText.length > MAX_INPUT_CHARS) {
-    return errorResponse(
+    return createErrorResponse<NonNullable<ChatError>>(
       {
         type: "bad_request",
         message: `Message is too long (${userText.length} / ${MAX_INPUT_CHARS} chars).`,
@@ -93,11 +54,11 @@ export async function POST(req: NextRequest) {
   const serverHistory = await getHistory(sessionId);
   const moderation = moderateText(userText, MODERATED_WORD_PAIRS);
   const taggedUser = tagWithModeration(parsed.message, moderation);
-  const persistedHistory = [...serverHistory, taggedUser];
+  const persistedHistory = mergeUserMessage(serverHistory, taggedUser);
   await replaceHistory(sessionId, persistedHistory);
 
   if (!moderation.ok) {
-    return errorResponse(
+    return createErrorResponse<NonNullable<ChatError>>(
       { type: "moderation_blocked", violations: moderation.violations },
       400,
     );
@@ -109,10 +70,7 @@ export async function POST(req: NextRequest) {
     onFinish: async ({ messages: finalMessages }) => {
       await replaceHistory(
         sessionId,
-        preserveModerationTags(
-          finalMessages as ChatMessage[],
-          persistedHistory,
-        ),
+        preserveModerationTags(finalMessages, persistedHistory),
       );
     },
   });
