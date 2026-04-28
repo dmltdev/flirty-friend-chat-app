@@ -4,7 +4,7 @@ import { mkdir } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { MAX_MESSAGES_PER_SESSION } from "./constants";
-import { INTRO_MESSAGE } from "./persona";
+import { getIntroMessage } from "./persona";
 import { type ChatMessage } from "./types";
 
 type SessionData = { messages: ChatMessage[] };
@@ -25,10 +25,11 @@ function sessionFilePath(sessionId: string): string {
 async function openDb(sessionId: string): Promise<Low<SessionData>> {
   await mkdir(DATA_DIR, { recursive: true });
   const adapter = new JSONFile<SessionData>(sessionFilePath(sessionId));
-  const db = new Low<SessionData>(adapter, { messages: [INTRO_MESSAGE] });
+  const intro = getIntroMessage(sessionId);
+  const db = new Low<SessionData>(adapter, { messages: [intro] });
   await db.read();
   if (!db.data || !Array.isArray(db.data.messages)) {
-    db.data = { messages: [INTRO_MESSAGE] };
+    db.data = { messages: [intro] };
     await db.write();
   }
   return db;

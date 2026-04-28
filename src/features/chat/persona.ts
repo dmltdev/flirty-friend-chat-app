@@ -26,7 +26,7 @@ export const PERSONA_SYSTEM_PROMPT = `
   Goal:
   Create chemistry, comfort, anticipation, and emotional connection so the user enjoys returning to chat.`;
 
-export const INTRO_MESSAGE: ChatMessage = {
+const INTRO_MESSAGE: ChatMessage = {
   id: "intro",
   role: "assistant",
   parts: [
@@ -36,3 +36,10 @@ export const INTRO_MESSAGE: ChatMessage = {
     },
   ],
 };
+
+export function getIntroMessage(sessionId: string) {
+  return {
+    ...INTRO_MESSAGE,
+    id: `intro-${sessionId}`,
+  };
+}

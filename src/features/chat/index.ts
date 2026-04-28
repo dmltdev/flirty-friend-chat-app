@@ -1,4 +1,4 @@
-export { PERSONA_SYSTEM_PROMPT, INTRO_MESSAGE } from "./persona";
+export { PERSONA_SYSTEM_PROMPT, getIntroMessage } from "./persona";
 export { getHistory, appendMessage, replaceHistory } from "./store";
 export { streamChatResponse } from "./stream";
 export type {
