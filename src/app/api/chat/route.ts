@@ -11,6 +11,7 @@ import {
 } from "~/features/chat";
 import type { ChatError, ChatMessage } from "~/features/chat/types";
 import { getMessageText } from "~/features/chat/text";
+import { MAX_INPUT_CHARS } from "~/features/chat/constants";
 import { MODERATED_WORD_PAIRS, moderateText } from "~/features/moderation";
 import { checkRateLimit } from "~/lib/rate-limit";
 import { getSessionId } from "~/lib/session";
@@ -76,13 +77,21 @@ export async function POST(req: NextRequest) {
   const parsed = await parseUserMessage(req);
   if (!parsed.ok) return parsed.response;
 
+  const userText = getMessageText(parsed.message);
+  if (userText.length > MAX_INPUT_CHARS) {
+    return errorResponse(
+      {
+        type: "bad_request",
+        message: `Message is too long (${userText.length} / ${MAX_INPUT_CHARS} chars).`,
+      },
+      400,
+    );
+  }
+
   // Server-stored history is the source of truth — moderation flags on prior
   // messages live here, not in the client-submitted payload.
   const serverHistory = await getHistory(sessionId);
-  const moderation = moderateText(
-    getMessageText(parsed.message),
-    MODERATED_WORD_PAIRS,
-  );
+  const moderation = moderateText(userText, MODERATED_WORD_PAIRS);
   const taggedUser = tagWithModeration(parsed.message, moderation);
   const persistedHistory = [...serverHistory, taggedUser];
   await replaceHistory(sessionId, persistedHistory);
