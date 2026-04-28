@@ -17,6 +17,7 @@ import { MODERATED_WORD_PAIRS, moderateText } from "~/features/moderation";
 import { checkRateLimit } from "~/lib/rate-limit";
 import { getSessionId } from "~/lib/session";
 import { createErrorResponse } from "~/lib/utils/api";
+import { acquireSessionLock } from "~/lib/session-lock";
 
 export async function GET() {
   const sessionId = await getSessionId();
@@ -49,29 +50,44 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Server-stored history is the source of truth — moderation flags on prior
-  // messages live here, not in the client-submitted payload.
-  const serverHistory = await getHistory(sessionId);
-  const moderation = moderateText(userText, MODERATED_WORD_PAIRS);
-  const taggedUser = tagWithModeration(parsed.message, moderation);
-  const persistedHistory = mergeUserMessage(serverHistory, taggedUser);
-  await replaceHistory(sessionId, persistedHistory);
+  const release = await acquireSessionLock(sessionId);
+  try {
+    // Server-stored history is the source of truth — moderation flags on prior
+    // messages live here, not in the client-submitted payload.
+    const serverHistory = await getHistory(sessionId);
+    const moderation = moderateText(userText, MODERATED_WORD_PAIRS);
+    const taggedUser = tagWithModeration(parsed.message, moderation);
+    const persistedHistory = mergeUserMessage(serverHistory, taggedUser);
+    await replaceHistory(sessionId, persistedHistory);
 
-  if (!moderation.ok) {
-    return createErrorResponse<NonNullable<ChatError>>(
-      { type: "moderation_blocked", violations: moderation.violations },
-      400,
-    );
-  }
-
-  const stream = await streamChatResponse(stripFlagged(persistedHistory));
-  return stream.toUIMessageStreamResponse({
-    originalMessages: persistedHistory,
-    onFinish: async ({ messages: finalMessages }) => {
-      await replaceHistory(
-        sessionId,
-        preserveModerationTags(finalMessages, persistedHistory),
+    if (!moderation.ok) {
+      release();
+      return createErrorResponse<NonNullable<ChatError>>(
+        { type: "moderation_blocked", violations: moderation.violations },
+        400,
       );
-    },
-  });
+    }
+
+    const stream = await streamChatResponse(stripFlagged(persistedHistory));
+    return stream.toUIMessageStreamResponse({
+      originalMessages: persistedHistory,
+      onFinish: async ({ messages: finalMessages }) => {
+        try {
+          await replaceHistory(
+            sessionId,
+            preserveModerationTags(finalMessages, persistedHistory),
+          );
+        } finally {
+          release();
+        }
+      },
+      onError: (err) => {
+        release();
+        return err instanceof Error ? err.message : String(err);
+      },
+    });
+  } catch (err) {
+    release();
+    throw err;
+  }
 }
